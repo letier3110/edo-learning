@@ -1,0 +1,73 @@
+<head>
+  <meta charset="UTF-8">
+  <script src="https://unpkg.com/wanakana"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+  <style>
+    .center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 16px;
+
+      height: 100vh;
+      position: relative;
+    }
+    .originalText {
+      font-family: 'Kosugi Maru', sans-serif;
+      font-size: 3rem;
+      line-height: 3.75rem;
+      font-weight: bold;
+    }
+    span {
+      padding: 6px 2px;
+      border-radius: 10px;
+      color: white;
+    }
+    .spanColor1 {
+      background-color: #ff55aa;
+    }
+    .spanColor2 {
+      background-color: #55aaff;
+    }
+    .spanColor3 {
+      background-color: #55ffaa;
+      color: black;
+    }
+    .spanColor4 {
+      background-color: #ffaa55;
+    }
+    .romaji {
+      font-size: 1rem;
+      letter-spacing: 0.7rem;
+    }
+    .kana {
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <div class="romaji"></div>
+    <div class="originalText">
+      私はサッカーをするために公園に行きます
+    </div>
+    <div class="kana"></div>
+  </div>
+  <script>
+    const specialChars = ['は', '行', 'に', 'を']
+    const area = document.getElementsByClassName('originalText')[0]
+    const areaText = area.textContent;
+    for (let i = 0; i < specialChars.length; i++) {
+      const re = new RegExp(specialChars[i], 'g');
+      area.innerHTML = area.innerHTML.replace(re, `<span class="spanColor${i+1}">${specialChars[i]}</span>`);
+    }
+
+    const romaji = wanakana.toRomaji(areaText, { upcaseKatakana: true })
+    const kana = wanakana.toHiragana(areaText)
+
+    // uncomment to see romaji and kana
+    document.getElementsByClassName('romaji')[0].innerHTML = romaji
+    document.getElementsByClassName('kana')[0].innerHTML = kana
+  </script>
+</body>
