@@ -10,10 +10,10 @@
       flex-direction: column;
       gap: 16px;
 
-      height: 100vh;
+      height: calc(100vh - 60px);
       position: relative;
     }
-    .originalText {
+    .textArea {
       font-family: 'Kosugi Maru', sans-serif;
       font-size: 3rem;
       line-height: 3.75rem;
@@ -33,36 +33,62 @@
       user-select: none;
       font-size: 1rem;
     }
+    .bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .together {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background-color: #55aaff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div class="center">
     <div class="romaji"></div>
-    <div class="originalText">私はサッカーをするために公園に行きます</div>
+    <div class="textArea">私はサッカーをするために公園に行きます</div>
     <div class="kana"></div>
   </div>
-  <input class="original"></input>
+  <div class="bottom">
+    <input class="original"></input>
+    <div class="together">
+      <button onclick="saveSelection()">Add to selection</button>
+      <button onclick="clearSelection()">Clear selection</button>
+    </div>
+  </div>
   <script>
     const bgColors = ['#ff55aa', '#55aaff', '#55ffaa', '#ffaa55']
     const fontColors = ['white', 'white', 'black', 'white']
     const initialSpecialChars = ['は', '行', 'に', 'を']
-    const originalTextElement = document.getElementsByClassName('originalText')[0]
+    const textAreaEl = document.getElementsByClassName('textArea')[0]
+    let savedSelections = []
     /**
      * @param {string[]} specialChars - array of special characters to highlight
      * @param {boolean} romajiHighlight - if true, highlight romaji
      * @param {boolean} kanaHighlight - if true, highlight kana
      */
     const highlight = (specialChars, romajiHighlight, kanaHighlight) => {
-      const area = originalTextElement
-      const areaText = area.textContent
+      let newContent = textAreaEl.textContent;
       for (let i = 0; i < specialChars.length; i++) {
         const re = new RegExp(specialChars[i], 'g')
         const ci = i % bgColors.length
-        area.innerHTML = area.innerHTML.replace(re, `<span style="background-color: ${bgColors[ci]}; color: ${fontColors[ci]}">${specialChars[i]}</span>`)
+        newContent = newContent.replace(re, `<span style="background-color: ${bgColors[ci]}; color: ${fontColors[ci]}">${specialChars[i]}</span>`)
       }
 
-      const romaji = wanakana.toRomaji(areaText, { upcaseKatakana: true })
-      const kana = wanakana.toHiragana(areaText)
+      textAreaEl.innerHTML = newContent
+
+      const content = textAreaEl.textContent
+      const romaji = wanakana.toRomaji(content, { upcaseKatakana: true })
+      const kana = wanakana.toHiragana(content)
 
       if (romajiHighlight) {
         document.getElementsByClassName('romaji')[0].innerHTML = romaji
@@ -72,18 +98,41 @@
       }
     }
 
-    const originalText = originalTextElement.innerHTML
-    
-    document.addEventListener('selectionchange', () => {
+    function saveSelection() {
       const selection = window.getSelection().toString()
       if (selection.length === 0) {
-        originalTextElement.innerHTML = originalText
         return
       }
-      highlight(selection, true, true)
+      savedSelections.push(selection)
+      highlight(savedSelections, true, true)
+    }
+
+    function clearSelection() {
+      savedSelections = []
+      textAreaEl.innerHTML = textAreaEl.textContent
+    }
+
+    let originalText = textAreaEl.innerHTML
+    
+    document.addEventListener('selectionchange', () => {
+      if(savedSelections.length > 0) {
+        return;
+      }
+      const selection = window.getSelection().toString()
+      if (selection.length === 0) {
+        textAreaEl.innerHTML = originalText
+        return
+      }
+      highlight([selection], true, true)
     })
 
-    document.getElementsByClassName('original')[0].value = originalText
+    const inputEl = document.getElementsByClassName('original')[0];
+    inputEl.value = originalText
+    inputEl.addEventListener('input', (e) => {
+      const value = e.target.value
+      textAreaEl.innerHTML = value
+      originalText = value
+    })
     highlight(initialSpecialChars);
   </script>
 </body>
