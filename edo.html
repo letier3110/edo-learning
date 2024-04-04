@@ -1,7 +1,7 @@
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <script src="https://unpkg.com/wanakana"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet" />
   <style>
     .center {
       display: flex;
@@ -24,24 +24,13 @@
       border-radius: 10px;
       color: white;
     }
-    .spanColor1 {
-      background-color: #ff55aa;
-    }
-    .spanColor2 {
-      background-color: #55aaff;
-    }
-    .spanColor3 {
-      background-color: #55ffaa;
-      color: black;
-    }
-    .spanColor4 {
-      background-color: #ffaa55;
-    }
     .romaji {
+      user-select: none;
       font-size: 1rem;
       letter-spacing: 0.7rem;
     }
     .kana {
+      user-select: none;
       font-size: 1rem;
     }
   </style>
@@ -49,25 +38,52 @@
 <body>
   <div class="center">
     <div class="romaji"></div>
-    <div class="originalText">
-      私はサッカーをするために公園に行きます
-    </div>
+    <div class="originalText">私はサッカーをするために公園に行きます</div>
     <div class="kana"></div>
   </div>
+  <input class="original"></input>
   <script>
-    const specialChars = ['は', '行', 'に', 'を']
-    const area = document.getElementsByClassName('originalText')[0]
-    const areaText = area.textContent;
-    for (let i = 0; i < specialChars.length; i++) {
-      const re = new RegExp(specialChars[i], 'g');
-      area.innerHTML = area.innerHTML.replace(re, `<span class="spanColor${i+1}">${specialChars[i]}</span>`);
+    const bgColors = ['#ff55aa', '#55aaff', '#55ffaa', '#ffaa55']
+    const fontColors = ['white', 'white', 'black', 'white']
+    const initialSpecialChars = ['は', '行', 'に', 'を']
+    const originalTextElement = document.getElementsByClassName('originalText')[0]
+    /**
+     * @param {string[]} specialChars - array of special characters to highlight
+     * @param {boolean} romajiHighlight - if true, highlight romaji
+     * @param {boolean} kanaHighlight - if true, highlight kana
+     */
+    const highlight = (specialChars, romajiHighlight, kanaHighlight) => {
+      const area = originalTextElement
+      const areaText = area.textContent
+      for (let i = 0; i < specialChars.length; i++) {
+        const re = new RegExp(specialChars[i], 'g')
+        const ci = i % bgColors.length
+        area.innerHTML = area.innerHTML.replace(re, `<span style="background-color: ${bgColors[ci]}; color: ${fontColors[ci]}">${specialChars[i]}</span>`)
+      }
+
+      const romaji = wanakana.toRomaji(areaText, { upcaseKatakana: true })
+      const kana = wanakana.toHiragana(areaText)
+
+      if (romajiHighlight) {
+        document.getElementsByClassName('romaji')[0].innerHTML = romaji
+      }
+      if (kanaHighlight) {
+        document.getElementsByClassName('kana')[0].innerHTML = kana
+      }
     }
 
-    const romaji = wanakana.toRomaji(areaText, { upcaseKatakana: true })
-    const kana = wanakana.toHiragana(areaText)
+    const originalText = originalTextElement.innerHTML
+    
+    document.addEventListener('selectionchange', () => {
+      const selection = window.getSelection().toString()
+      if (selection.length === 0) {
+        originalTextElement.innerHTML = originalText
+        return
+      }
+      highlight(selection, true, true)
+    })
 
-    // uncomment to see romaji and kana
-    document.getElementsByClassName('romaji')[0].innerHTML = romaji
-    document.getElementsByClassName('kana')[0].innerHTML = kana
+    document.getElementsByClassName('original')[0].value = originalText
+    highlight(initialSpecialChars);
   </script>
 </body>
